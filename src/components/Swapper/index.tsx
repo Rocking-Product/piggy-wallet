@@ -8,15 +8,10 @@ import {
 } from "@/components/Atoms/Select";
 import Button from '../Button';
 import { ethers } from 'ethers';
-import usdcAbi from '@/abis/USDC'
+import usdcAbi from '@/abis/USDC';
 import tokenMessengerAbi from '@/abis/cctp/TokenMessenger';
 import messageTransmitterAbi from '@/abis/cctp/MessageTransmitter';
-import { useWallets } from '@privy-io/react-auth';
 import { useSmartAccount } from '@/app/hooks/SmartAccountContext';
-import { USDC_ADDRESSES } from '@/constants/addresses';
-import { arbitrumSepolia, polygon } from 'viem/chains';
-import { getUsdcBalance } from '@/functions/usdc/balance';
-
 
 interface ISwapper {
     setValues: React.Dispatch<React.SetStateAction<{
@@ -27,87 +22,80 @@ interface ISwapper {
         network: string;
         amount: number;
     };
-    setOpen : React.Dispatch<React.SetStateAction<boolean>>;
-} 
-
-const chainsFrom = {
-  ETH_SEPOLIA: {
-    token_messenger: '0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5',
-    usdc: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238'
-  },
-  OP_SEPOLIA: {
-    token_messenger: '0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5',
-    usdc: '0x5fd84259d66Cd46123540766Be93DFE6D43130D7'
-  },
-  ARB_SEPOLIA: {
-    token_messenger: '0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5',
-    usdc: '0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d'
-  },
-  POLYGON_AMOY: {
-    token_messenger: '0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5',
-    usdc: '0x41e94eb019c0762f9bfcf9fb1e58725bfb0e7582'
-  },
-  BASE_SEPOLIA: {
-    token_messenger: '0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5',
-    usdc: '0x036CbD53842c5426634e7929541eC2318f3dCF7e'
-  },
-  AVAX_FUJI: {
-    token_messenger: '0xeb08f243e5d3fcff26a9e38ae5520a669f4019d0',
-    usdc: '0x5425890298aed601595a70ab815c96711a31bc65'
-  }
+    setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const chainsTo = {
-  ETH_SEPOLIA: {
-    message_transmitter: '0x7865fAfC2db2093669d92c0F33AeEF291086BEFD',
-    domain: 0
-  },
-  OP_SEPOLIA: {
-    message_transmitter: '0x7865fAfC2db2093669d92c0F33AeEF291086BEFD',
-    domain: 2
-  },
-  ARB_SEPOLIA: {
-    message_transmitter: '0xaCF1ceeF35caAc005e15888dDb8A3515C41B4872',
-    domain: 3
-  },
-  POLYGON_AMOY: {
-    message_transmitter: '0x7865fAfC2db2093669d92c0F33AeEF291086BEFD',
-    domain: 7
-  },
-  BASE_SEPOLIA: {
-    message_transmitter: '0x7865fAfC2db2093669d92c0F33AeEF291086BEFD',
-    domain: 6
-  },
-  AVAX_FUJI: {
-    message_transmitter: '0xa9fb1b3009dcb79e2fe346c16a604b8fa8ae0a79',
-    domain: 1
-  }
+interface ChainInfo {
+    token_messenger?: string;
+    message_transmitter?: string;
+    usdc: string;
+    domain?: number;
+    chainId: string;
 }
 
-const Swapper: React.FC<ISwapper> = ({setValues, setOpen, values}) => {
-    const [provider, setProvider] = useState<ethers.BrowserProvider | null>(null);
-    const [signer, setSigner] = useState<ethers.JsonRpcSigner | null>(null);
-    const [account, setAccount] = useState<string | null>(null);
+const chainsFrom: Record<string, ChainInfo> = {
+    ETH_SEPOLIA: {
+        token_messenger: '0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5',
+        usdc: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238',
+        chainId: '11155111', // Sepolia Testnet Chain ID
+    },
+    OP_SEPOLIA: {
+        token_messenger: '0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5',
+        usdc: '0x5fd84259d66Cd46123540766Be93DFE6D43130D7',
+        chainId: '420', // Optimism Goerli Chain ID
+    },
+    ARB_SEPOLIA: {
+        token_messenger: '0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5',
+        usdc: '0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d',
+        chainId: '421611', // Arbitrum Rinkeby Chain ID
+    },
+    POLYGON_AMOY: {
+        token_messenger: '0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5',
+        usdc: '0x41e94eb019c0762f9bfcf9fb1e58725bfb0e7582',
+        chainId: '1442', // Polygon zkEVM Testnet Chain ID
+    },
+    BASE_SEPOLIA: {
+        token_messenger: '0x9f3B8679c73C2Fef8b59B4f3444d4e156fb70AA5',
+        usdc: '0x36cBD53842c5426634e7929541eC2318f3dCF7e',
+        chainId: '84532', // Base Sepolia Chain ID actualizado
+    },
+    AVAX_FUJI: {
+        token_messenger: '0xeb08f243e5d3fcff26a9e38ae5520a669f4019d0',
+        usdc: '0x5425890298aed601595a70ab815c96711a31bc65',
+        chainId: '43113', // Avalanche Fuji Testnet Chain ID
+    }
+};
+
+const chainsTo: Record<string, ChainInfo> = {
+    BASE_SEPOLIA: {
+        message_transmitter: '0x7865fAfC2db2093669d92c0F33AeEF291086BEFD',
+        usdc: '0x36cBD53842c5426634e7929541eC2318f3dCF7e',
+        domain: 6,
+        chainId: '84532', // Base Sepolia Chain ID actualizado
+    },
+    // Si deseas agregar más cadenas de destino, puedes hacerlo aquí
+};
+
+const Swapper: React.FC<ISwapper> = ({ setValues, setOpen, values }) => {
     const [loading, setLoading] = useState<boolean>(false);
-    const { smartAccountAddress, eoa, smartAccountClient, publicClient } = useSmartAccount();   
-    type ChainKey = keyof typeof chainsFrom; // Esto genera un tipo que es una unión de las claves de chainsFrom
-    const selectedOrigin: ChainKey = values.network as ChainKey //'ETH_SEPOLIA'
-    const selectedDestination = 'ARB_SEPOLIA'
-    const selectedAmount =  ethers.parseUnits(values.amount.toString(), 6)
-    const mintRecipient = smartAccountAddress; // does not have to be an EOA
-    console.log( selectedOrigin,
-      selectedDestination,
-      selectedAmount,
-      mintRecipient)
+    const { smartAccountAddress } = useSmartAccount();
+
+    // Cadena de origen seleccionada por el usuario
+    const selectedOrigin = values.network;
+    // Cadena de destino fija (Base Sepolia)
+    const selectedDestination = 'BASE_SEPOLIA';
+    // Monto a transferir (con 6 decimales para USDC)
+    const selectedAmount = ethers.parseUnits(values.amount.toString(), 6);
+    // Dirección de la wallet de Privy del cliente
+    const mintRecipient = smartAccountAddress;
+
     const onChangeHandlerNetwork = (value: string) => {
         setValues({
             ...values,
             network: value,
         });
     };
-    useEffect(() => {
-      connectWallet()
-    }, [])
+
     const onChangeHandlerAmount = (event: React.ChangeEvent<HTMLInputElement>) => {
         setValues({
             ...values,
@@ -115,110 +103,205 @@ const Swapper: React.FC<ISwapper> = ({setValues, setOpen, values}) => {
         });
     };
 
-    const onSwap = () => { 
-        setLoading(true)
-        bridge()
-    }
-
-    const connectWallet = async () => {
-        if (window.ethereum) {
-            try {
-                // Solicitar al usuario que conecte su cuenta a MetaMask
-                const browserProvider = new ethers.BrowserProvider(window.ethereum);
-                await browserProvider.send("eth_requestAccounts", []);
-
-                // Obtener el signer
-                const signer = await browserProvider.getSigner();
-                const address = await signer.getAddress();
-
-                // Actualizar el estado con el provider, signer y dirección de la cuenta
-                setProvider(browserProvider);
-                setSigner(signer);
-                setAccount(address);
-
-                console.log("Connected with address:", address);
-            } catch (error) {
-                console.error("Error connecting to MetaMask:", error);
-            }
-        } else {
-            console.error("MetaMask is not installed");
-        }
+    const onSwap = () => {
+        setLoading(true);
+        bridge();
     };
 
     const bridge = async () => {
-        if (!signer) {
-            console.log("No signer available");
-            // connectWallet()
-            return
-          }
+        try {
+            console.log("Iniciando transferencia cross-chain...");
 
-        console.log("Starting cross-chain transfer...")
+            // Obtener las configuraciones de las cadenas de origen y destino
+            const origin = chainsFrom[selectedOrigin];
+            const destination = chainsTo[selectedDestination];
 
+            // Convertir Chain IDs a formato hexadecimal
+            const originChainIdHex = '0x' + parseInt(origin.chainId).toString(16);
+            const destinationChainIdHex = '0x' + parseInt(destination.chainId).toString(16);
 
-      
-        const origin = chainsFrom[selectedOrigin]
-        const destination = chainsTo[selectedDestination]
+            // **Paso 1: Cambiar a la red de origen**
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: originChainIdHex }],
+                });
+            } catch (switchError: any) {
+                console.error('Error al cambiar a la cadena de origen:', switchError);
+                setLoading(false);
+                return;
+            }
 
-        // initialize contracts using address and ABI
-        const usdcContract = new ethers.Contract(origin.usdc, usdcAbi, signer);
-        const tokenMessengerContract = new ethers.Contract(origin.token_messenger, tokenMessengerAbi, signer)
-        const messageTransmitterContract = new ethers.Contract(destination.message_transmitter, messageTransmitterAbi, signer);
-        // Arbitrum Sepolia destination address
-        const destinationAddressInBytes32 = ethers.zeroPadValue(mintRecipient!, 32);
+            // **Paso 2: Inicializar provider y signer en la red de origen**
+            const originProvider = new ethers.BrowserProvider(window.ethereum);
+            const originSigner = await originProvider.getSigner();
 
-        // Amount that will be transferred
-        const amount = BigInt(selectedAmount);
+            // **Paso 3: Inicializar contratos en la cadena de origen**
+            const usdcContract = new ethers.Contract(origin.usdc, usdcAbi, originSigner);
+            const tokenMessengerContract = new ethers.Contract(origin.token_messenger!, tokenMessengerAbi, originSigner);
 
-        // STEP 1: Approve messenger contract to withdraw from our active eth address
-        console.log("Approving USDC contract on source chain...")
-        const approveTx = await usdcContract.approve(origin.token_messenger, amount);
-        await approveTx.wait();
+            // **Paso 4: Preparar datos para la transferencia**
+            // Dirección de destino en formato bytes32
+            const destinationAddressInBytes32 = ethers.zeroPadValue(mintRecipient!, 32);
+            // Monto a transferir
+            const amount = BigInt(selectedAmount);
 
-        // STEP 2: Burn USDC
-        console.log("Burning USDC on source chain...")
-        const burnTx = await tokenMessengerContract.depositForBurn(amount, destination.domain, destinationAddressInBytes32, origin.usdc);
-        const burnTxReceipt = await burnTx.wait();
+            // **Paso 5: Aprobar el contrato Token Messenger para gastar USDC**
+            console.log("Aprobando USDC para el contrato Token Messenger en la cadena de origen...");
+            const approveTx = await usdcContract.approve(origin.token_messenger, amount);
+            await approveTx.wait();
 
-        // STEP 3: Retrieve message bytes from logs
-        const eventTopic = ethers.id('MessageSent(bytes)')
-        const log = burnTxReceipt.logs.find((l: { topics: string[]; }) => l.topics[0] === eventTopic);
-
-        let messageBytes, messageBytesHash;
-        if (!log) {
-            console.log("No MessageSent found!");
-            return;
-        } else {
-            messageBytes = ethers.AbiCoder.defaultAbiCoder().decode(
-                ['bytes'], log.data
+            // **Paso 6: Quemar USDC en la cadena de origen**
+            console.log("Quemando USDC en la cadena de origen...");
+            const burnTx = await tokenMessengerContract.depositForBurn(
+                amount,
+                destination.domain!,
+                destinationAddressInBytes32,
+                origin.usdc
             );
-            messageBytesHash = ethers.keccak256(messageBytes[0]);
+            const burnTxReceipt = await burnTx.wait();
+
+            // **Paso 7: Obtener los bytes del mensaje de los logs de eventos**
+            const eventTopic = ethers.id('MessageSent(bytes)');
+            const log = burnTxReceipt.logs.find((l: any) => l.topics[0] === eventTopic);
+
+            if (!log) {
+                console.log("¡No se encontró el evento MessageSent!");
+                setLoading(false);
+                return;
+            }
+
+            const messageBytes = ethers.AbiCoder.defaultAbiCoder().decode(['bytes'], log.data);
+            const messageBytesHash = ethers.keccak256(messageBytes[0]);
+
+            // **Paso 8: Obtener la atestación de Circle**
+            console.log("Obteniendo la firma de atestación...");
+            let attestationResponse = { status: 'pending', attestation: {} };
+            while (attestationResponse.status !== 'complete') {
+                console.log("Verificando si la atestación está lista...");
+                const response = await fetch(`https://iris-api-sandbox.circle.com/attestations/${messageBytesHash}`);
+                attestationResponse = await response.json();
+                await new Promise((r) => setTimeout(r, 5000));
+            }
+
+            const attestationSignature = attestationResponse.attestation;
+            console.log(`Firma de atestación obtenida: ${attestationSignature}`);
+
+            // **Paso 9: Cambiar a la red de destino (Base Sepolia)**
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: destinationChainIdHex }],
+                });
+            } catch (switchError: any) {
+                console.error('Error al cambiar a la cadena de destino:', switchError);
+                console.log('Código de error:', switchError.code);
+
+                // Si el error es que la cadena no está agregada, agregarla
+                if (switchError.code === 4902) {
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_addEthereumChain',
+                            params: [
+                                {
+                                    chainId: destinationChainIdHex,
+                                    chainName: 'Base Sepolia',
+                                    rpcUrls: ['https://base-sepolia.rpc.publicnode.com'],
+                                    nativeCurrency: {
+                                        name: 'Ethereum',
+                                        symbol: 'ETH',
+                                        decimals: 18,
+                                    },
+                                    blockExplorerUrls: ['https://base-sepolia.blockscout.com'],
+                                },
+                            ],
+                        });
+
+                        // Después de agregar la cadena, intentar cambiar nuevamente
+                        await window.ethereum.request({
+                            method: 'wallet_switchEthereumChain',
+                            params: [{ chainId: destinationChainIdHex }],
+                        });
+                    } catch (addError: any) {
+                        console.error('Error al agregar o cambiar a la cadena de destino:', addError);
+                        setLoading(false);
+                        return;
+                    }
+                } else {
+                    console.error('Error no manejado al cambiar de cadena:', switchError.code);
+                    setLoading(false);
+                    return;
+                }
+            }
+
+            // **Paso 10: Inicializar provider y signer en la red de destino**
+            const destinationProvider = new ethers.BrowserProvider(window.ethereum);
+            const destinationSigner = await destinationProvider.getSigner();
+
+            // **Paso 11: Recibir los fondos en la cadena de destino**
+            console.log("Recibiendo fondos en la cadena de destino...");
+
+            const messageTransmitterContractDestination = new ethers.Contract(
+                destination.message_transmitter!,
+                messageTransmitterAbi,
+                destinationSigner
+            );
+
+            const receiveTx = await messageTransmitterContractDestination.receiveMessage(
+                messageBytes[0],
+                attestationSignature
+            );
+            const receiveTxReceipt = await receiveTx.wait();
+            console.log("¡Fondos recibidos en la cadena de destino!");
+            console.log(`Detalles de la transacción: https://base-sepolia.blockscout.com/tx/${receiveTxReceipt.transactionHash}`);
+
+            // **Paso 12: Obtener el balance de la billetera de destino (wallet de Privy del cliente)**
+            const usdcContractDestination = new ethers.Contract(
+                destination.usdc,
+                usdcAbi,
+                destinationSigner
+            );
+
+            const destinationBalance = await usdcContractDestination.balanceOf(mintRecipient);
+            console.log(`Balance de la cuenta de destino: ${ethers.formatUnits(destinationBalance, 6)} USDC`);
+
+            setLoading(false);
+            setOpen(false);
+        } catch (error) {
+            console.error('Error durante la transferencia cross-chain:', error);
+            setLoading(false);
         }
+    };
 
-        // STEP 4: Fetch attestation signature
-        console.log("Fetching attestation signature...");
-        let attestationResponse = { status: 'pending', attestation: {}};
-        while (attestationResponse.status != 'complete') {
-            console.log("Checking for attestation...");
-            const response = await fetch(`https://iris-api-sandbox.circle.com/attestations/${messageBytesHash}`);
-            attestationResponse = await response.json();
-            // check again every 5 seconds
-            await new Promise(r => setTimeout(r, 5000));
-        }
+    useEffect(() => {
+        // Función para obtener el balance de USDC en la cuenta de destino
+        const fetchBalance = async () => {
+            if (!mintRecipient) return;
 
-        const attestationSignature = attestationResponse.attestation;
-        console.log(`Attestation Signature: ${attestationSignature}`)
+            try {
+                const provider = new ethers.BrowserProvider(window.ethereum);
+                const signer = await provider.getSigner();
+                const network = await provider.getNetwork();
+                const chainId = network.chainId.toString();
 
-        // STEP 5: Using the message bytes and signature receive the funds on destination chain and address
-        console.log("Receiving funds on destination chain...")
-        const receiveTx = await messageTransmitterContract.receiveMessage(messageBytes[0], attestationSignature);
-        console.log(receiveTx)
-        const receiveTxReceipt = await receiveTx.wait();
-        console.log("Funds received on destination chain!");
-        console.log(`See tx details: https://sepolia.arbiscan.io/tx/${receiveTxReceipt.transactionHash}`);
-        setLoading(false)
-        setOpen(false)
+                const currentChain = Object.values(chainsFrom).find(chain => chain.chainId === chainId) ||
+                    Object.values(chainsTo).find(chain => chain.chainId === chainId);
 
-    }
+                if (!currentChain) {
+                    console.error('Red no reconocida');
+                    return;
+                }
+
+                const usdcContract = new ethers.Contract(currentChain.usdc, usdcAbi, signer);
+                const balance = await usdcContract.balanceOf(mintRecipient);
+                console.log(`Balance en la cadena ${chainId}: ${ethers.formatUnits(balance, 6)} USDC`);
+            } catch (error) {
+                console.error("Error al obtener el balance:", error);
+            }
+        };
+
+        fetchBalance();
+    }, [mintRecipient]);
 
     return (
         <>
@@ -230,7 +313,7 @@ const Swapper: React.FC<ISwapper> = ({setValues, setOpen, values}) => {
                     <SelectContent>
                         <SelectItem value="ETH_SEPOLIA">ETH_SEPOLIA</SelectItem>
                         <SelectItem value="OP_SEPOLIA">OP_SEPOLIA</SelectItem>
-                        {/* <SelectItem value="ARB_SEPOLIA">ARB_SEPOLIA</SelectItem> */}
+                        <SelectItem value="ARB_SEPOLIA">ARB_SEPOLIA</SelectItem>
                         <SelectItem value="POLYGON_AMOY">POLYGON_AMOY</SelectItem>
                         <SelectItem value="BASE_SEPOLIA">BASE_SEPOLIA</SelectItem>
                         <SelectItem value="AVAX_FUJI">AVAX_FUJI</SelectItem>
@@ -240,17 +323,21 @@ const Swapper: React.FC<ISwapper> = ({setValues, setOpen, values}) => {
                     type="number"
                     value={values.amount}
                     onChange={onChangeHandlerAmount}
-                    placeholder="Enter amount"
+                    placeholder="Ingresa el monto"
                     className="border border-gray-300 rounded-lg px-4 py-2 w-full"
                 />
             </div>
-            {!loading ? <div className='mt-4'>
-                <Button onClick = {onSwap}>
-                    Deposit
-                </Button>
-            </div> : <div className='mt-4'>
-                Loading...
-            </div>}
+            {!loading ? (
+                <div className='mt-4'>
+                    <Button onClick={onSwap}>
+                        Depositar
+                    </Button>
+                </div>
+            ) : (
+                <div className='mt-4'>
+                    Cargando...
+                </div>
+            )}
         </>
     );
 };

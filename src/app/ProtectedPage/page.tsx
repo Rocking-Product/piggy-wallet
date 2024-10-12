@@ -7,7 +7,7 @@ import { useSmartAccount } from "../hooks/SmartAccountContext";
 import { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import { DCASwapInterval } from "@balmy/sdk";
-import { polygon, polygonAmoy } from "viem/chains";
+import { base } from "viem/chains";
 import { USDC_ADDRESSES } from "@/constants/addresses";
 import { usdcToWBTC } from "@/functions/dca/deposit_usdc";
 import { getPositions } from "@/functions/dca/get_positions";
@@ -21,13 +21,13 @@ const ProtectedPage = () => {
   const { smartAccountAddress, eoa, smartAccountClient, publicClient } =
     useSmartAccount();
   const [balance, setBalance] = useState<any>();
-  const chain = polygon;
+  const chain = base;
 
   const usdcAbi = [
     "function balanceOf(address owner) view returns (uint256)",
     "function approve(address spender, uint256 amount) public returns (bool)",
   ];
-  const provider = new ethers.JsonRpcProvider('https://polygon-mainnet.g.alchemy.com/v2/Fgy1wydMzkEVzqzkufxIT4IIoL15sKQU');
+  const provider = new ethers.JsonRpcProvider('https://base-mainnet.g.alchemy.com/v2/Fgy1wydMzkEVzqzkufxIT4IIoL15sKQU');
   const usdcContract = new ethers.Contract(
     USDC_ADDRESSES[chain.id],
     usdcAbi,

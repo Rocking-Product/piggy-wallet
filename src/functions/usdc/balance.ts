@@ -1,12 +1,25 @@
-import { Contract } from "ethers";
+import { Contract, ethers } from "ethers";
 import { Dispatch } from "react";
-import { Address } from "viem";
 
-export const getUsdcBalance = async (contract: Contract, wallet: Address, dispatch: Dispatch<any>, currbalance: any) => {
-  const balance =await contract.balanceOf(wallet);
-  console.log('acaaa',balance)
-  console.log('acaaa',Number(balance))
-  console.log('acaaa',Number(currbalance))
-  dispatch(Number(currbalance)+Number(balance))
+export const getUsdcBalance = async (
+  contract: Contract,
+  wallet: string,
+  dispatch: Dispatch<any>,
+  currbalance: any
+) => {
+  console.log('wallet:', wallet);
 
+  // Validar que la dirección es válida
+  if (!ethers.isAddress(wallet)) {
+    console.error('Dirección Ethereum inválida:', wallet);
+    return;
+  }
+
+  try {
+    const balance = await contract.balanceOf(wallet);
+    console.log('Balance obtenido:', balance.toString());
+    dispatch(Number(currbalance) + Number(balance));
+  } catch (error) {
+    console.error('Error al obtener el balance:', error);
+  }
 };
