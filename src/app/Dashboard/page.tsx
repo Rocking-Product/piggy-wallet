@@ -33,7 +33,7 @@ import ModalAddInvestmentConfirm from "@/components/Dashboard/ModalAddInvestment
 import AuthenticationChecker from "@/components/AuthenticationChecker"
 import { usePrivy } from "@privy-io/react-auth"
 import { useSmartAccount } from "../hooks/SmartAccountContext"
-import { arbitrum, arbitrumSepolia, polygon } from "viem/chains"
+import { arbitrum,base,baseSepolia } from "viem/chains"
 import { ethers } from "ethers"
 import { USDC_ADDRESSES } from "@/constants/addresses"
 import { getUsdcBalance } from "@/functions/usdc/balance"
@@ -178,32 +178,30 @@ const Dashboard = () => {
     useSmartAccount();
 
     const [balance, setBalance] = useState<any>(0);
-  const chain = polygon;
+  const chain = baseSepolia;
 
   const usdcAbi = [
     "function balanceOf(address owner) view returns (uint256)",
     "function approve(address spender, uint256 amount) public returns (bool)",
   ];
-  const provider = new ethers.JsonRpcProvider('https://polygon-mainnet.g.alchemy.com/v2/Fgy1wydMzkEVzqzkufxIT4IIoL15sKQU');
+  const provider = new ethers.JsonRpcProvider('https://base-sepolia.g.alchemy.com/v2/Fgy1wydMzkEVzqzkufxIT4IIoL15sKQU');
+
+  // Inicializar contrato de USDC para Base Sepolia
   const usdcContract = new ethers.Contract(
-    USDC_ADDRESSES[chain.id],
+    USDC_ADDRESSES[chain.id], // Dirección de USDC para Base Sepolia
     usdcAbi,
     provider,
   );
-
-  const providerArbitrum = new ethers.JsonRpcProvider('https://arb-sepolia.g.alchemy.com/v2/Fgy1wydMzkEVzqzkufxIT4IIoL15sKQU');
-  const usdcContractArbitrum = new ethers.Contract(
-    USDC_ADDRESSES[arbitrumSepolia.id],
-    usdcAbi,
-    providerArbitrum,
-  );
-
+  
+  
   useEffect(() => {
     if (!smartAccountAddress) return;
 
-    if (usdcContract && usdcContractArbitrum) {
+    if (usdcContract ) {
+      console.log('smartAccountAddress:', smartAccountAddress);
+
       getUsdcBalance(usdcContract, smartAccountAddress, setBalance, balance);
-      getUsdcBalance(usdcContractArbitrum, smartAccountAddress, setBalance, balance);
+
     }
   }, [smartAccountAddress, smartAccountClient]);
   

@@ -1,23 +1,22 @@
 import { Address } from "viem";
-import { arbitrumSepolia, polygon, polygonAmoy } from "viem/chains";
+import { base,baseSepolia } from "viem/chains";
 
 export const HUB_ADDRESSES: Record<number, Address> = {
-  [polygon.id]: "0x059d306A25c4cE8D7437D25743a8B94520536BD5",
-  [polygonAmoy.id]: "0xA5AdC5484f9997fBF7D405b9AA62A7d88883C345",
+  [base.id]: "0x4200000000000000000000000000000000000010", // L2StandardBridge para Base
+  [baseSepolia.id]: "0x4200000000000000000000000000000000000010", // L2StandardBridge para Base Sepolia
+};
+
+export const WETH_ADDRESSES: Record<number, Address> = {
+  [base.id]: "0x4200000000000000000000000000000000000006", // Dirección de WETH en Base
+  [baseSepolia.id]: "0x4200000000000000000000000000000000000006", // Dirección de WETH en Base Sepolia
 };
 
 export const USDC_ADDRESSES: Record<number, Address> = {
-  [polygon.id]: "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
-  [polygonAmoy.id]: "0x6C615481E96806edBd9987B6E522A4Ea85d13659",
-  [arbitrumSepolia.id]: "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d",
+  [base.id]: "0xA0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", // Dirección de USDC en Base Mainnet
+  [baseSepolia.id]: "0x36cBD53842c5426634e7929541eC2318f3dCF7e", // Dirección de USDC en Base Sepolia
 };
 
 export const WBTC_ADDRESSES: Record<number, Address> = {
-  [polygon.id]: "0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6",
-  [polygonAmoy.id]: "0x6C615481E96806edBd9987B6E522A4Ea85d13659",
-};
-
-export const WMATIC_ADDRESSES: Record<number, Address> = {
-  [polygon.id]: "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
-  [polygonAmoy.id]: "0x6C615481E96806edBd9987B6E522A4Ea85d13659",
+  [base.id]: "0x68aaea61afe28baf1d847d9e21b0bfeba4cd3cdb", // Dirección de WBTC en Base Mainnet
+  [baseSepolia.id]: "0x68aaea61afe28baf1d847d9e21b0bfeba4cd3cdb", // Dirección de WBTC en Base Sepolia (si es relevante)
 };

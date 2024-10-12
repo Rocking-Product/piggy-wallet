@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import { ConnectedWallet, usePrivy, useWallets } from "@privy-io/react-auth";
 import { createPublicClient, createWalletClient, custom, http } from "viem";
-import { polygon, polygonAmoy } from "viem/chains";
+import { base,baseSepolia } from "viem/chains";
 import { Chain, Transport } from "viem";
 import {
   SafeSmartAccount,
@@ -110,7 +110,7 @@ export const SmartAccountProvider = ({
     // Creates a smart account given a Privy `ConnectedWallet` object representing
     // the  user's EOA.
     const createSmartWallet = async (eoa: ConnectedWallet) => {
-      const chain = polygon;
+      const chain = baseSepolia;
       setEoa(eoa);
       // Get an EIP1193 provider and viem WalletClient for the EOA
       const eip1193provider = await eoa.getEthereumProvider();
@@ -186,6 +186,7 @@ export const SmartAccountProvider = ({
       (wallet) => wallet.walletClientType === "privy",
     );
     if (embeddedWallet) createSmartWallet(embeddedWallet);
+    console.log(embeddedWallet)
   }, [wallets]);
 
   return (
