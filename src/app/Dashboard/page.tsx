@@ -195,15 +195,26 @@ const Dashboard = () => {
   
   
   useEffect(() => {
-    if (!smartAccountAddress) return;
-
-    if (usdcContract ) {
-      console.log('smartAccountAddress:', smartAccountAddress);
-
-      getUsdcBalance(usdcContract, smartAccountAddress, setBalance, balance);
-
-    }
-  }, [smartAccountAddress, smartAccountClient]);
+    if (!smartAccountAddress || !usdcContract) return;
+  
+    const fetchBalance = async () => {
+      try {
+        console.log('smartAccountAddress:', smartAccountAddress);
+  
+        // Obtiene el balance de USDC usando la función asíncrona
+        const balanceaddress =await getUsdcBalance(usdcContract, smartAccountAddress);
+   
+        // Establece el balance en el estado
+        setBalance(balanceaddress);
+  
+        console.log("balance:", balanceaddress);
+      } catch (error) {
+        console.error("Error fetching balance:", error);
+      }
+    };
+  
+    fetchBalance();
+  }, [smartAccountAddress, usdcContract]);
   
     return (
         <AuthenticationChecker>

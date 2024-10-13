@@ -13,7 +13,7 @@ export const WETH_ADDRESSES: Record<number, Address> = {
 
 export const USDC_ADDRESSES: Record<number, Address> = {
   [base.id]: "0xA0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", // Dirección de USDC en Base Mainnet
-  [baseSepolia.id]: "0x36cBD53842c5426634e7929541eC2318f3dCF7e", // Dirección de USDC en Base Sepolia
+  [baseSepolia.id]: "0x036CbD53842c5426634e7929541eC2318f3dCF7e", // Dirección de USDC en Base Sepolia
 };
 
 export const WBTC_ADDRESSES: Record<number, Address> = {

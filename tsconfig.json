@@ -12,6 +12,7 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "removeComments": false, // Asegura que los comentarios no se eliminen
     "plugins": [
       {
         "name": "next"

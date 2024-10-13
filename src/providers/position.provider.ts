@@ -99,7 +99,9 @@ export class PositionProvider {
       },
     ];
     const wrappedProtocolToken = getWrappedProtocolToken(chainId);
+    // @ts-ignore
     const fromToUse = wrappedProtocolToken.address.toLowerCase();
+    // @ts-ignore
     const toToUse = wrappedProtocolToken.address.toLowerCase();
     return {
       chainId,

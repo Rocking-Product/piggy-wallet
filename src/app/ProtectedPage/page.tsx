@@ -7,7 +7,7 @@ import { useSmartAccount } from "../hooks/SmartAccountContext";
 import { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import { DCASwapInterval } from "@balmy/sdk";
-import { base } from "viem/chains";
+import { base, baseSepolia } from "viem/chains";
 import { USDC_ADDRESSES } from "@/constants/addresses";
 import { usdcToWBTC } from "@/functions/dca/deposit_usdc";
 import { getPositions } from "@/functions/dca/get_positions";
@@ -21,7 +21,7 @@ const ProtectedPage = () => {
   const { smartAccountAddress, eoa, smartAccountClient, publicClient } =
     useSmartAccount();
   const [balance, setBalance] = useState<any>();
-  const chain = base;
+  const chain = baseSepolia;
 
   const usdcAbi = [
     "function balanceOf(address owner) view returns (uint256)",
@@ -37,7 +37,7 @@ const ProtectedPage = () => {
     if (!smartAccountAddress) return;
 
     if (usdcContract) {
-      getUsdcBalance(usdcContract, smartAccountAddress, setBalance, balance);
+      getUsdcBalance(usdcContract, smartAccountAddress);
     }
 
     if (smartAccountClient && usdcContract) {

@@ -12,6 +12,7 @@ import usdcAbi from '@/abis/USDC';
 import tokenMessengerAbi from '@/abis/cctp/TokenMessenger';
 import messageTransmitterAbi from '@/abis/cctp/MessageTransmitter';
 import { useSmartAccount } from '@/app/hooks/SmartAccountContext';
+import { getUsdcBalance } from "@/functions/usdc/balance"
 
 interface ISwapper {
     setValues: React.Dispatch<React.SetStateAction<{
@@ -206,7 +207,7 @@ const Swapper: React.FC<ISwapper> = ({ setValues, setOpen, values }) => {
                                 {
                                     chainId: destinationChainIdHex,
                                     chainName: 'Base Sepolia',
-                                    rpcUrls: ['https://base-sepolia.rpc.publicnode.com'],
+                                    rpcUrls: ['https://sepolia.base.org'],
                                     nativeCurrency: {
                                         name: 'Ethereum',
                                         symbol: 'ETH',
@@ -256,14 +257,10 @@ const Swapper: React.FC<ISwapper> = ({ setValues, setOpen, values }) => {
             console.log(`Detalles de la transacción: https://base-sepolia.blockscout.com/tx/${receiveTxReceipt.transactionHash}`);
 
             // **Paso 12: Obtener el balance de la billetera de destino (wallet de Privy del cliente)**
-            const usdcContractDestination = new ethers.Contract(
-                destination.usdc,
-                usdcAbi,
-                destinationSigner
-            );
-
-            const destinationBalance = await usdcContractDestination.balanceOf(mintRecipient);
-            console.log(`Balance de la cuenta de destino: ${ethers.formatUnits(destinationBalance, 6)} USDC`);
+            if(smartAccountAddress){
+                const balance =getUsdcBalance(usdcContract, smartAccountAddress);   
+                console.log(`Balance de la cuenta de destino: ${balance} USDC`);
+            }
 
             setLoading(false);
             setOpen(false);
@@ -335,7 +332,7 @@ const Swapper: React.FC<ISwapper> = ({ setValues, setOpen, values }) => {
                 </div>
             ) : (
                 <div className='mt-4'>
-                    Cargando...
+                    Cargando, esto puede demorar unos minutos...
                 </div>
             )}
         </>
